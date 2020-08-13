@@ -56,7 +56,7 @@ func (c *ValidateZh) Validate(i interface{}) error {
 
 	// 添加手机验证的函数
 	c.validate.RegisterTranslation("mobile", translator, func(ut ut.Translator) error {
-		return ut.Add("mobile", "{0}长度不等于11位或{1}格式错误", true)
+		return ut.Add("mobile", "{0}格式错误", true)
 	}, func(ut ut.Translator, ve validator.FieldError) string {
 		t, _ := ut.T("mobile", ve.Field(), ve.Field())
 		return t
