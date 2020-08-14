@@ -19,8 +19,8 @@ type CreateUserSchema struct {
 
 var users User
 _ = c.ShoudBindBodyWith(users,binding.JSON)
-v := new(zh.ValidatorZh)
-err := v.Validate(users)
+
+err := zh.Validate(users)
 if err !=nil{
   c.json(http.StatusBadRequest,gin.H{
     "message": err.Error(),

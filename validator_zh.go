@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -22,28 +21,23 @@ import (
 	zh_translate "github.com/go-playground/validator/v10/translations/zh"
 )
 
-type ValidateZh struct {
-	once     sync.Once
-	validate *validator.Validate
-}
-
-func (c *ValidateZh) Validate(i interface{}) error {
-	c.lazyInit()
+func Validate(i interface{}) error {
+	validate := new(validator.Validate)
 
 	// 注册mobile手机号码验证
-	err := c.validate.RegisterValidation("mobile", mobile)
+	err := validate.RegisterValidation("mobile", mobile)
 	if err != nil {
 		panic(err)
 	}
 
 	// 注册idcard身份证验证
-	err = c.validate.RegisterValidation("idcard", idcard)
+	err = validate.RegisterValidation("idcard", idcard)
 	if err != nil {
 		panic(err)
 	}
 
 	// 注册label自定义的标签 用于错误提示
-	c.validate.RegisterTagNameFunc(func(filed reflect.StructField) string {
+	validate.RegisterTagNameFunc(func(filed reflect.StructField) string {
 		name := filed.Tag.Get("label")
 		return name
 	})
@@ -52,17 +46,17 @@ func (c *ValidateZh) Validate(i interface{}) error {
 	e := en.New()
 	uniTrans := ut.New(e, e, zh.New(), zh_Hant_TW.New())
 	translator, _ := uniTrans.GetTranslator("zh")
-	zh_translate.RegisterDefaultTranslations(c.validate, translator)
+	zh_translate.RegisterDefaultTranslations(validate, translator)
 
 	// 添加手机验证的函数
-	c.validate.RegisterTranslation("mobile", translator, func(ut ut.Translator) error {
+	validate.RegisterTranslation("mobile", translator, func(ut ut.Translator) error {
 		return ut.Add("mobile", "{0}格式错误", true)
 	}, func(ut ut.Translator, ve validator.FieldError) string {
 		t, _ := ut.T("mobile", ve.Field(), ve.Field())
 		return t
 	})
 
-	c.validate.RegisterTranslation("idcard", translator, func(ut ut.Translator) error {
+	validate.RegisterTranslation("idcard", translator, func(ut ut.Translator) error {
 		return ut.Add("idcard", "请输入正确的{0}号码", true)
 	}, func(ut ut.Translator, ve validator.FieldError) string {
 		t, _ := ut.T("idcard", ve.Field(), ve.Field())
@@ -71,7 +65,7 @@ func (c *ValidateZh) Validate(i interface{}) error {
 
 	var sb strings.Builder
 
-	err = c.validate.Struct(i)
+	err = validate.Struct(i)
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
 		for _, err := range errs {
@@ -82,12 +76,6 @@ func (c *ValidateZh) Validate(i interface{}) error {
 		return errors.New(sb.String())
 	}
 	return nil
-}
-
-func (c *ValidateZh) lazyInit() {
-	c.once.Do(func() {
-		c.validate = validator.New()
-	})
 }
 
 // mobile 验证手机号码
