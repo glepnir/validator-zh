@@ -1,6 +1,6 @@
 # validator-zh
 
-中文的参数验证。
+[validator](https://github.com/go-playground/validator)的中文提示,新增手机号码和身份证号码.
 
 # 使用方法
 
