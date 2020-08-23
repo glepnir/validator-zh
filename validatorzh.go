@@ -22,21 +22,20 @@ import (
 )
 
 func Validate(i interface{}) error {
-	validate := new(validator.Validate)
-
-	// 注册mobile手机号码验证
+	validate := validator.New()
+	// register mobile
 	err := validate.RegisterValidation("mobile", mobile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	// 注册idcard身份证验证
+	// register idcard
 	err = validate.RegisterValidation("idcard", idcard)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	// 注册label自定义的标签 用于错误提示
+	// register label for better prompt
 	validate.RegisterTagNameFunc(func(filed reflect.StructField) string {
 		name := filed.Tag.Get("label")
 		return name
@@ -62,10 +61,10 @@ func Validate(i interface{}) error {
 		t, _ := ut.T("idcard", ve.Field(), ve.Field())
 		return t
 	})
-
 	var sb strings.Builder
 
 	err = validate.Struct(i)
+
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
 		for _, err := range errs {
@@ -78,7 +77,6 @@ func Validate(i interface{}) error {
 	return nil
 }
 
-// mobile 验证手机号码
 func mobile(vf validator.FieldLevel) bool {
 	ok, _ := regexp.MatchString(`^1[3-9][0-9]{9}$`, vf.Field().String())
 	return ok
