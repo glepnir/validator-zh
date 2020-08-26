@@ -14,7 +14,7 @@ import(
 type CreateUserSchema struct {
 	UserName       string `json:"username" validate:"required" label:"用户姓名"`
 	Phone          string `json:"phone" validate:"required,mobile" label:"联系电话"`
-	IdCard         string `json:"phone" validate:"required,idcard" label:"身份证号码"`
+	IdCard         string `json:"idcard" validate:"required,idcard" label:"身份证号码"`
 }
 
 var users User
