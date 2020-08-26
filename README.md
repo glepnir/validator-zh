@@ -8,7 +8,7 @@
 
 ```go
 import(
-  zh "github.com/glepnir/validatorzh"
+  zh "github.com/glepnir/validator-zh"
 )
 
 type CreateUserSchema struct {
