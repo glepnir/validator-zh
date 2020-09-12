@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -21,22 +22,34 @@ import (
 	zh_translate "github.com/go-playground/validator/v10/translations/zh"
 )
 
-func Validate(i interface{}) error {
-	validate := validator.New()
+type ValidatorZh struct {
+	once     sync.Once
+	validate *validator.Validate
+}
+
+func (v *ValidatorZh) lazyInit() {
+	v.once.Do(func() {
+		v.validate = validator.New()
+	})
+}
+
+func (v *ValidatorZh) Validate(i interface{}) error {
+	v.lazyInit()
+
 	// register mobile
-	err := validate.RegisterValidation("mobile", mobile)
+	err := v.validate.RegisterValidation("mobile", mobile)
 	if err != nil {
 		return err
 	}
 
 	// register idcard
-	err = validate.RegisterValidation("idcard", idcard)
+	err = v.validate.RegisterValidation("idcard", idcard)
 	if err != nil {
 		return err
 	}
 
 	// register label for better prompt
-	validate.RegisterTagNameFunc(func(filed reflect.StructField) string {
+	v.validate.RegisterTagNameFunc(func(filed reflect.StructField) string {
 		name := filed.Tag.Get("label")
 		return name
 	})
@@ -45,17 +58,17 @@ func Validate(i interface{}) error {
 	e := en.New()
 	uniTrans := ut.New(e, e, zh.New(), zh_Hant_TW.New())
 	translator, _ := uniTrans.GetTranslator("zh")
-	zh_translate.RegisterDefaultTranslations(validate, translator)
+	zh_translate.RegisterDefaultTranslations(v.validate, translator)
 
 	// 添加手机验证的函数
-	validate.RegisterTranslation("mobile", translator, func(ut ut.Translator) error {
+	v.validate.RegisterTranslation("mobile", translator, func(ut ut.Translator) error {
 		return ut.Add("mobile", "{0}格式错误", true)
 	}, func(ut ut.Translator, ve validator.FieldError) string {
 		t, _ := ut.T("mobile", ve.Field(), ve.Field())
 		return t
 	})
 
-	validate.RegisterTranslation("idcard", translator, func(ut ut.Translator) error {
+	v.validate.RegisterTranslation("idcard", translator, func(ut ut.Translator) error {
 		return ut.Add("idcard", "请输入正确的{0}号码", true)
 	}, func(ut ut.Translator, ve validator.FieldError) string {
 		t, _ := ut.T("idcard", ve.Field(), ve.Field())
@@ -63,7 +76,7 @@ func Validate(i interface{}) error {
 	})
 	var sb strings.Builder
 
-	err = validate.Struct(i)
+	err = v.validate.Struct(i)
 
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
