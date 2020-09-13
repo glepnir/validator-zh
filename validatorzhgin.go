@@ -24,9 +24,6 @@ type GinValidatorZh struct {
 	validate *validator.Validate
 }
 
-// ensure implemention gin structValidator
-var _ binding.StructValidator = (*GinValidatorZh)(nil)
-
 func (v *GinValidatorZh) lazyinit() {
 	v.once.Do(func() {
 		v.validate = validator.New()
