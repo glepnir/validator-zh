@@ -1,3 +1,3 @@
-module github.com/glepnir/validatorzh/v1
+module github.com/glepnir/validatorzh
 
 go 1.15
