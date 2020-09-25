@@ -5,6 +5,8 @@
 package main
 
 import (
+	"net/http"
+
 	validatorzh "github.com/glepnir/validator-zh"
 	"github.com/labstack/echo/v4"
 )
@@ -22,6 +24,7 @@ func main() {
 		if err:=c.Bind(u);err!=nil{
 			return err
 		}
-		return nil
+		return c.String(http.StatusOK, "Ok")
 	})
+	e.Start(":8080")
 }
