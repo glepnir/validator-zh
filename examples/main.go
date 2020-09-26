@@ -7,7 +7,7 @@ package main
 import (
 	"net/http"
 
-	validatorzh "github.com/glepnir/validator-zh"
+	validatorzh "github.com/glepnir/validatorzh"
 	"github.com/labstack/echo/v4"
 )
 
